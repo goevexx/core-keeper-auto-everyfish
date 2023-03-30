@@ -1,0 +1,3 @@
+[submodule "lib/log4ahk"]
+	path = lib/log4ahk
+	url = https://github.com/goevexx/log4ahk

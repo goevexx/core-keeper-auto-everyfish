@@ -4,6 +4,7 @@ Fishing has never been easier before in core keeper. (Yeah, early access, I know
 
 This application catches every item and every fish just for you. :heart:  
 Or anyone else. 🐡
+It's optimal for farming rare fishes, rare items and for leveling up your fishing skill automatically.
 
 ## Install
 

@@ -28,7 +28,7 @@ What you need to do is either of these:
 ### -- Get code
 
 Either you need to 
-1. download this repositories files Code -> ZIP-Download) and
+1. download this repositories files (Code -> ZIP-Download) and
 2. [this repositories files](https://github.com/goevexx/log4ahk),
 3. unpack them and
 4. place the [seconds' repository](https://github.com/goevexx/log4ahk) files inside of this' `lib/log4ahk` folder so that all files from [second repository](https://github.com/goevexx/log4ahk) are inside of `lib/log4ahk/` from this repository

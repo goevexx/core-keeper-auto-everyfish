@@ -1,9 +1,6 @@
-#Include "log4ahk/log4ahk.ahk"
-
 ; The Machine managing the fishing state
 class FishingStateMachine {
-    __New(logger := Log4ahk("[%V] #%M# %m"), resetThreshhold := 20000) {
-        this.logger := logger
+    __New(resetThreshhold := 20000) {
         this.resetThreshhold := resetThreshhold
 
         magicWindowWidth := 1920
@@ -46,15 +43,12 @@ class FishingStateMachine {
             previoustateName := "(no state)"
         }
         this.currentState := state
-        this.logger.trace("Changed state from " . previoustateName . " to " . this.currentState.__Class . "")
     }
 
     handleState(){
         if(this.currentState.getElapsedTime() > this.resetThreshhold){
-            this.logger.trace(this.currentState.__Class . " reached reset threshhold. Resetting.")
             this.reset()
         } else {
-            this.logger.trace("Handle " . this.currentState.__Class . "")
             this.currentState.handle()
         }
     }
@@ -64,7 +58,6 @@ class FishingStateMachine {
     }
 
     hit(){
-        this.logger.debug("Hit")
         if(HasProp(this, "fishingClickX") and HasProp(this, "fishingClickY")){
             Click(this.fishingClickX, this.fishingClickY, 1)
         }
@@ -109,7 +102,6 @@ class FishingStateMachineState {
     ; Get's elapsed time in ms
     getElapsedTime(){
         elapsedTime := A_TickCount - this.startTime
-        this.logger.trace(elapsedTime . "ms elapsed in " . this.__Class)
         return A_TickCount - this.startTime
     }
     
@@ -122,7 +114,6 @@ class FishingStateMachineState {
         rectangleHasFrameColor1:= PixelSearch(&rhfc1x,&rhfc1y,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.challengeFrameColor1,3)
         rectangleHasFrameColor2:= PixelSearch(&rhfc2x,&rhfc2y,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.challengeFrameColor2,3)
         fishIsChallenging := rectangleHasWaterColor1 and rectangleHasWaterColor2 and rectangleHasGrasColor1 and rectangleHasGrasColor2 and rectangleHasFrameColor1 and rectangleHasFrameColor2
-        this.logger.trace("isFishChallenging = " . fishIsChallenging . " (Colors: Water1 = " . rectangleHasWaterColor1 . ", Water2 = " . rectangleHasWaterColor2 . ", Gras 1 = " . rectangleHasGrasColor1 . ", Gras 2 = " . rectangleHasGrasColor2 . ", Frame 1 = " . rectangleHasFrameColor1 . ", Frame 2 = " . rectangleHasFrameColor2 . ")")
         return fishIsChallenging
     }
     
@@ -131,7 +122,6 @@ class FishingStateMachineState {
         rectangleHasDarkerColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
         rectangleHasBrighterColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
         somethingIsOnTheHook := rectangleHasDarkerColor and rectangleHasBrighterColor
-        this.logger.trace("isSomethingOnTheHook = " . somethingIsOnTheHook . " (Colors: Darker = " . rectangleHasDarkerColor . ", Brighter = " . rectangleHasBrighterColor . ")")
         return somethingIsOnTheHook
     }
 
@@ -140,7 +130,6 @@ class FishingStateMachineState {
         rectangleHasDarkerColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.pullingFishColorDark,4)
         rectangleHasBrighterColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.pullingFishColorBright,4)
         fishIsPulling := rectangleHasDarkerColor and rectangleHasBrighterColor
-        this.logger.trace("isFishPulling = " . fishIsPulling . " (Colors: Darker = " . rectangleHasDarkerColor . ", Brighter = " . rectangleHasBrighterColor . ")")
         return fishIsPulling
     }
 
@@ -149,11 +138,9 @@ class FishingStateMachineState {
         rectangleHasDarkerColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.easingFishColorDark,3)
         rectangleHasBrighterColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.easingFishColorBright,3)
         fishIsEasing := rectangleHasDarkerColor and rectangleHasBrighterColor
-        this.logger.trace("isFishEasing = " . fishIsEasing . " (Colors: Darker =  " . rectangleHasDarkerColor . ", Brighter = " . rectangleHasBrighterColor . ")")
         return fishIsEasing
     }
 
-    logger => this.context.logger
     fishingClickX => this.context.fishingClickX
     fishingClickY => this.context.fishingClickY
     exclimationRectangleX1 => this.context.exclimationRectangleX1
@@ -193,7 +180,6 @@ class IdleState extends FishingStateMachineState {
     }
 
     castOut(){
-        this.logger.debug("Cast out rod")
         Click("Down Right", this.fishingClickX, this.fishingClickY)
         Sleep(200)
         Click("Up Right", this.fishingClickX, this.fishingClickY)
@@ -214,19 +200,16 @@ class FishingState extends FishingStateMachineState {
     }
 
     catchIt(){
-        this.logger.debug("Start catching")
         Click("Right", this.fishingClickX, this.fishingClickY)
         ; Wait or animation to finish
         Sleep(300)
     }
 
     itemCatched(){
-        this.logger.info("Catched Item")
         this.changeState(IdleState(this.context))
     }
 
     challengeStarted(){
-        this.logger.debug("Fishing challenge started")
         this.changeState(ChallengeState(this.context))
     }
 }
@@ -253,7 +236,6 @@ class ChallengeState extends FishingStateMachineState {
 
     pull(){
         if(!this.isClickingDown){
-            this.logger.debug("Pull rod")
             Click("Down Right", this.fishingClickX, this.fishingClickY)
             this.isClickingDown := true
         }
@@ -261,14 +243,12 @@ class ChallengeState extends FishingStateMachineState {
 
     ease(){
         if(this.isClickingDown){
-            this.logger.debug("Ease rod")
             Click("Up Right", this.fishingClickX, this.fishingClickY)
             this.isClickingDown := false
         }
     }
 
     fishCatched(){
-        this.logger.info("Catched fish")
         ; Wait fo animation to finish
         sleep(300)
         this.changeState(IdleState(this.context))

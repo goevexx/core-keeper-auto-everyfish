@@ -1,24 +1,5 @@
 #SingleInstance Force
 #Include "lib/FishingStateMachine.ahk"
-#Include "lib/log4ahk/log4ahk.ahk"
-
-; ########## OPTIONS ##########
-
-; ## Log ##
-; Logging might impact this' scripts performance depending on which configuration you use
-;
-; Save log
-saveLog := false
-; If saveLog is true, log to filename
-filename := A_Now . "-everyfish.log"
-; How deep should your log inform you:
-; - Use TRACE to better find errors 
-; - Use DEBUG to developement 
-; - --> Use INFO to simple usage and data analysis 
-; - Use ERROR or even FATAL to just show what's going wrong 
-logLvl := LogLevel.INFO
-
-; #############################
 
 readyToStart := false
 startFishing := false
@@ -29,10 +10,7 @@ readyToStart := resultOk = "OK"
 if !readyToStart
     ExitApp
 
-logger := Log4ahk("[%V] #%M# %m", logLvl)
-logger.appenders.push(Log4ahk.AppenderFile(filename))
-logger.shouldLog := saveLog
-fishingMachine := FishingStateMachine(logger)
+fishingMachine := FishingStateMachine()
 Loop {
     if (!startFishing) {
         continue
@@ -71,11 +49,6 @@ $^f::{
     global
     if(readyToStart) {
         startFishing := !startFishing
-        if(startFishing){
-            logger.info("Start fishing procedure")
-        } else {
-            logger.info("Stop fishing procedure")
-        }
         fishingMachine.reset()
     }
 }

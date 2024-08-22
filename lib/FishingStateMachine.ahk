@@ -3,19 +3,23 @@ class FishingStateMachine {
     __New(resetThreshhold := 20000) {
         this.resetThreshhold := resetThreshhold
 
-        magicWindowWidth := 1920
-        magicWindowHeight := 1080
-        this.exclimationRectangleX1Factor := 958 / magicWindowWidth
-        this.exclimationRectangleY1Factor := 369 / magicWindowHeight
-        this.exclimationRectangleX2Factor := 976 / magicWindowWidth
-        this.exclimationRectangleY2Factor := 415 / magicWindowHeight
-        this.challengeRectangleX1Factor   := 757 / magicWindowWidth
-        this.challengeRectangleY1Factor   := 833 / magicWindowHeight
-        this.challengeRectangleX2Factor   := 1163 / magicWindowWidth
-        this.challengeRectangleY2Factor   := 871 / magicWindowHeight
+        this.coreKeeperWindowWidth := 1920
+        this.coreKeeperWindowHeight := 1080
+        this.exclimationRectangleX1 := 966 
+        this.exclimationRectangleY1 := 363 
+        this.exclimationRectangleX2 := 976 
+        this.exclimationRectangleY2 := 415 
         
-        this.exclimationColorDark :=  0xD7282F
-        this.exclimationColorBright :=  0xDECD3F
+        this.exclimationColorDark :=  0xDE232A
+        this.exclimationColorBright :=  0xE9C62C 
+
+        ; TODO: Remove this code
+        ; ----------------------------------------------------------------
+        ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
+        this.challengeRectangleX1   := 757 
+        this.challengeRectangleY1   := 833 
+        this.challengeRectangleX2   := 1163 
+        this.challengeRectangleY2   := 871 
         this.challengeWaterColor1 := 0x1885D5
         this.challengeWaterColor2 := 0x104DB9
         this.challengeWaterColor3 := 0x143EAB
@@ -28,6 +32,7 @@ class FishingStateMachine {
         this.pullingFishColorBright := 0xC52B04
         this.easingFishColorDark :=   0x814428
         this.easingFishColorBright := 0xE1A030   
+        ; -----------------------------------------------------------------
         this.initState()
     }
 
@@ -68,14 +73,37 @@ class FishingStateMachine {
         this.windowHeight := windowHeight
         this.fishingClickX := windowWidth * 0.8
         this.fishingClickY := windowHeight / 2
-        this.exclimationRectangleX1 := this.exclimationRectangleX1Factor * windowWidth
-        this.exclimationRectangleY1 := this.exclimationRectangleY1Factor * windowHeight
-        this.exclimationRectangleX2 := this.exclimationRectangleX2Factor * windowWidth
-        this.exclimationRectangleY2 := this.exclimationRectangleY2Factor * windowHeight
-        this.challengeRectangleX1 := this.challengeRectangleX1Factor * windowWidth
-        this.challengeRectangleY1 := this.challengeRectangleY1Factor * windowHeight
-        this.challengeRectangleX2 := this.challengeRectangleX2Factor * windowWidth
-        this.challengeRectangleY2 := this.challengeRectangleY2Factor * windowHeight
+
+        ; Fit core keeper into window
+        windowRelation := windowWidth / windowHeight
+        coreKeeperWindowRelation := this.coreKeeperWindowWidth / this.coreKeeperWindowHeight
+        blankX := 0
+        blankY := 0
+        scaleFactor := windowWidth / this.coreKeeperWindowWidth 
+        if(windowRelation > coreKeeperWindowRelation) ; it got wider    
+        {
+            newCoreKeeperWindowWidth := this.coreKeeperWindowWidth / this.coreKeeperWindowHeight * windowHeight
+            blankX := (windowWidth - newCoreKeeperWindowWidth) / 2 
+            scaleFactor := newCoreKeeperWindowWidth / this.coreKeeperWindowWidth
+        } else if(windowRelation < coreKeeperWindowRelation) ; it got higher 
+        {
+            newCoreKeeperWindowHeight := this.coreKeeperWindowHeight / this.coreKeeperWindowWidth * windowWidth
+            blankY := (windowHeight - newCoreKeeperWindowHeight) / 2
+            scaleFactor := newCoreKeeperWindowHeight / this.coreKeeperWindowHeight
+        } 
+        this.exclimationRectangleX1 := this.exclimationRectangleX1 * scaleFactor + blankX
+        this.exclimationRectangleY1 := this.exclimationRectangleY1 * scaleFactor + blankY
+        this.exclimationRectangleX2 := this.exclimationRectangleX2 * scaleFactor + blankX 
+        this.exclimationRectangleY2 := this.exclimationRectangleY2 * scaleFactor + blankY
+
+        ; TODO: Remove this code
+        ; ----------------------------------------------------------------
+        ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
+        this.challengeRectangleX1 := this.challengeRectangleX1 * scaleFactor + blankX 
+        this.challengeRectangleY1 := this.challengeRectangleY1 * scaleFactor + blankY 
+        this.challengeRectangleX2 := this.challengeRectangleX2 * scaleFactor + blankX 
+        this.challengeRectangleY2 := this.challengeRectangleY2 * scaleFactor + blankY 
+        ; ----------------------------------------------------------------
     }
 
     areWindowBoundriesSet(){
@@ -105,6 +133,18 @@ class FishingStateMachineState {
         return A_TickCount - this.startTime
     }
     
+    ; Checks for the exclimation mark when something hooks
+    isSomethingOnTheHook(){
+        rectangleHasDarkerColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
+        rectangleHasBrighterColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
+        somethingIsOnTheHook := rectangleHasDarkerColor and rectangleHasBrighterColor
+        return somethingIsOnTheHook
+    }
+    
+    
+    ; TODO: Remove this code
+    ; ----------------------------------------------------------------
+    ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
     ; Checks for fish challenge windows
     isFishChallenging(){ 
         rectangleHasWaterColor1 := PixelSearch(&rhwc1x,&rhwc1y,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.challengeWaterColor1,3)
@@ -117,14 +157,6 @@ class FishingStateMachineState {
         return fishIsChallenging
     }
     
-    ; Checks for the exclimation mark when something hooks
-    isSomethingOnTheHook(){
-        rectangleHasDarkerColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
-        rectangleHasBrighterColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
-        somethingIsOnTheHook := rectangleHasDarkerColor and rectangleHasBrighterColor
-        return somethingIsOnTheHook
-    }
-
     ; Checks if the fish's pulling colors can be found 
     isFishPulling(){
         rectangleHasDarkerColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.pullingFishColorDark,4)
@@ -132,7 +164,7 @@ class FishingStateMachineState {
         fishIsPulling := rectangleHasDarkerColor and rectangleHasBrighterColor
         return fishIsPulling
     }
-
+    
     ; Checks if the fish's easing colors can be found 
     isFishEasing(){
         rectangleHasDarkerColor := PixelSearch(&empty,&empty,this.challengeRectangleX1,this.challengeRectangleY1,this.challengeRectangleX2,this.challengeRectangleY2,this.easingFishColorDark,3)
@@ -140,19 +172,25 @@ class FishingStateMachineState {
         fishIsEasing := rectangleHasDarkerColor and rectangleHasBrighterColor
         return fishIsEasing
     }
-
+    ; ----------------------------------------------------------------
+    
     fishingClickX => this.context.fishingClickX
     fishingClickY => this.context.fishingClickY
     exclimationRectangleX1 => this.context.exclimationRectangleX1
     exclimationRectangleY1 => this.context.exclimationRectangleY1
     exclimationRectangleX2 => this.context.exclimationRectangleX2
     exclimationRectangleY2 => this.context.exclimationRectangleY2
+    exclimationColorDark => this.context.exclimationColorDark
+    exclimationColorBright => this.context.exclimationColorBright
+
+    
+    ; TODO: Remove dead code
+    ; ----------------------------------------------------------------
+    ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
     challengeRectangleX1 => this.context.challengeRectangleX1
     challengeRectangleY1 => this.context.challengeRectangleY1
     challengeRectangleX2 => this.context.challengeRectangleX2
     challengeRectangleY2 => this.context.challengeRectangleY2
-    exclimationColorDark => this.context.exclimationColorDark
-    exclimationColorBright => this.context.exclimationColorBright
     challengeWaterColor1 => this.context.challengeWaterColor1
     challengeWaterColor2 => this.context.challengeWaterColor2
     challengeGrasColor1 => this.context.challengeGrasColor1
@@ -163,6 +201,7 @@ class FishingStateMachineState {
     pullingFishColorBright => this.context.pullingFishColorBright
     easingFishColorDark => this.context.easingFishColorDark
     easingFishColorBright => this.context.easingFishColorBright
+    ; ----------------------------------------------------------------
 }
 
 
@@ -191,11 +230,16 @@ class FishingState extends FishingStateMachineState {
     handle(){
         if(this.isSomethingOnTheHook()){
             this.catchIt()
+            
+            ; TODO: Remove dead code
+            ; ----------------------------------------------------------------
+            ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
             if(this.isFishChallenging()){
                 this.challengeStarted()
             } else {
-                this.itemCatched()
+                this.itemCatched() ; <---------- stays
             }
+            ; ----------------------------------------------------------------
         }
     }
 
@@ -209,11 +253,19 @@ class FishingState extends FishingStateMachineState {
         this.changeState(IdleState(this.context))
     }
 
+    
+    ; TODO: Remove dead code
+    ; ----------------------------------------------------------------
+    ; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
     challengeStarted(){
         this.changeState(ChallengeState(this.context))
     }
+    ; ----------------------------------------------------------------
 }
 
+; TODO: Remove dead code
+; ----------------------------------------------------------------
+; This seems to be dead, if fish challenge stays removed as of 0.9.9.9-f366
 ; A fish is caressing your hook
 class ChallengeState extends FishingStateMachineState {
     __New(context) {
@@ -254,3 +306,4 @@ class ChallengeState extends FishingStateMachineState {
         this.changeState(IdleState(this.context))
     }
 }
+; ----------------------------------------------------------------

@@ -5,10 +5,10 @@ class FishingStateMachine {
 
         this.coreKeeperWindowWidth := 1920
         this.coreKeeperWindowHeight := 1080
-        this.exclimationRectangleX1 := 966 
-        this.exclimationRectangleY1 := 363 
-        this.exclimationRectangleX2 := 976 
-        this.exclimationRectangleY2 := 415 
+        this.exclimationRectangleX1 := 926 
+        this.exclimationRectangleY1 := 353 
+        this.exclimationRectangleX2 := 1020 
+        this.exclimationRectangleY2 := 474 
         
         this.exclimationColorDark :=  0xDE232A
         this.exclimationColorBright :=  0xE9C62C 
@@ -135,8 +135,8 @@ class FishingStateMachineState {
     
     ; Checks for the exclimation mark when something hooks
     isSomethingOnTheHook(){
-        rectangleHasDarkerColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
-        rectangleHasBrighterColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,3)
+        rectangleHasDarkerColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,4)
+        rectangleHasBrighterColor := PixelSearch(&empty, &empty, this.exclimationRectangleX1, this.exclimationRectangleY1, this.exclimationRectangleX2, this.exclimationRectangleY2, this.exclimationColorBright,4)
         somethingIsOnTheHook := rectangleHasDarkerColor and rectangleHasBrighterColor
         return somethingIsOnTheHook
     }
@@ -227,8 +227,13 @@ class IdleState extends FishingStateMachineState {
 
 ; The rod was cast and you wait
 class FishingState extends FishingStateMachineState {
+    __New(context) {
+        super.__New(context)
+        this.initialExclamationVisible := true
+    }
+
     handle(){
-        if(this.isSomethingOnTheHook()){
+        if(this.isSomethingOnTheHook() & !this.initialExclamationVisible){
             this.catchIt()
             
             ; TODO: Remove dead code
@@ -240,6 +245,8 @@ class FishingState extends FishingStateMachineState {
                 this.itemCatched() ; <---------- stays
             }
             ; ----------------------------------------------------------------
+        } else if(!this.isSomethingOnTheHook() && this.initialExclamationVisible) {
+            this.initialExclamationVisible := false
         }
     }
 

@@ -27,10 +27,11 @@ Loop {
         if (yesResult = "Yes"){
             WinActivate("Core Keeper")
             setMachinesWindowBoundries()
+            startFishing := true
         } else if (yesResult = "No"){
             startFishing := false
-            fishingMachine.reset()
         }
+        fishingMachine.reset()
         continue
     } else if (!fishingMachine.areWindowBoundriesSet()){
         setMachinesWindowBoundries()
